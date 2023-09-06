@@ -27,8 +27,7 @@ pub type Error = Box<dyn std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 // A helper function to randomly pick a material
-fn get_rand_material() -> Rc<dyn Scatter> {
-    let choose_mat = utils::random_f64();
+fn get_rand_material(choose_mat: f64) -> Rc<dyn Scatter> {
     match choose_mat {
         x if x < 0.8 => {
             // difuse
@@ -69,7 +68,7 @@ fn main() -> Result<()> {
     )));
 
     // many small balls
-    let count = 1;
+    let count = 11;
     let p = Point3::new(4.0, 0.2, 0.0);
     for a in -count..count {
         for b in -count..count {
@@ -79,7 +78,19 @@ fn main() -> Result<()> {
                 b as f64 + utils::random_f64(),
             );
             if (&center - &p).length() > 0.9 {
-                world.add(Box::new(Sphere::new(center, 0.2, get_rand_material())));
+                let choose_mat = utils::random_f64();
+                let sphere_material = get_rand_material(choose_mat);
+                if choose_mat < 0.8 {
+                    let center1 = &center + Vec3::new(0.0, utils::random_f64_range(0.0, 0.5), 0.0);
+                    world.add(Box::new(Sphere::new_moving(
+                        center,
+                        center1,
+                        0.2,
+                        sphere_material.clone(),
+                    )));
+                } else {
+                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material.clone())));
+                }
             }
         }
     }
@@ -103,12 +114,12 @@ fn main() -> Result<()> {
         material_3.clone(),
     )));
 
-    let image_width = 1200; // pixels
-                            // camera
+    let image_width = 400; // pixels
+                           // camera
     let mut camera = Camera::new(
         16.0 / 9.0,
         image_width, /* image width*/
-        500,         /* sample per pixel */
+        100,         /* sample per pixel */
         50,          /* max depth */
         20.0,        /* vfov */
     );

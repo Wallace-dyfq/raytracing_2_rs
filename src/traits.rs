@@ -6,6 +6,7 @@ pub trait Hittable {
     fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord>;
 }
 
+//TODO: might be better to combine attenuation and ray into one struct?
 pub trait Scatter {
     fn scatter(
         &self,

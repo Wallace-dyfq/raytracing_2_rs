@@ -30,7 +30,7 @@ impl Lambertian {
 impl Scatter for Lambertian {
     fn scatter(
         &self,
-        _ray_in: &crate::ray::Ray,
+        ray_in: &crate::ray::Ray,
         rec: &crate::hittables::HitRecord,
         attenuation: &mut Color,
         ray_scattered: &mut Ray,
@@ -42,6 +42,7 @@ impl Scatter for Lambertian {
         *ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: scatter_direction,
+            tm: ray_in.tm,
         };
         attenuation.set_with_other(&self.albedo);
         true
@@ -68,6 +69,7 @@ impl Scatter for Metal {
         *ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: reflected + Vec3::random_unit_vec3() * self.fuzz,
+            tm: ray_in.tm,
         };
         attenuation.set_with_other(&self.albedo);
         true
@@ -115,6 +117,7 @@ impl Scatter for Dielectric {
         *ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: direction,
+            tm: ray_in.tm,
         };
 
         true

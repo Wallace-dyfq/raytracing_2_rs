@@ -89,6 +89,7 @@ impl Camera {
         return Ray {
             orig: ray_origin,
             dir: ray_direction,
+            tm: random_f64(),
         };
     }
 
