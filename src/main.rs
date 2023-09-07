@@ -5,6 +5,7 @@ mod color;
 mod hittables;
 mod interval;
 mod material;
+mod perlin;
 mod ray;
 mod sphere;
 mod texture;
@@ -12,7 +13,7 @@ mod traits;
 mod utils;
 mod vec3;
 use std::env;
-use texture::{CheckerTexture, ImageTexture, SolidColor};
+use texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor};
 
 use bvh::BvhNode;
 use camera::Camera;
@@ -91,6 +92,45 @@ fn earth(fname: Option<String>) -> Result<()> {
     Ok(())
 }
 
+fn two_perlin_spheres(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let mut world = Hittables::default();
+    let pertext = Rc::new(NoiseTexture::default());
+    let material_ground = Rc::new(Lambertian::new(pertext));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        material_ground.clone(),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        material_ground.clone(),
+    )));
+    let image_width = 400;
+    let mut camera = Camera::new(
+        16.0 / 9.0,
+        image_width, /* image width*/
+        100,         /* sample per pixel */
+        50,          /* max depth */
+        20.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(13.0, 2.0, 3.0);
+    camera.look_at = Point3::new(0.0, 0.0, 0.0);
+    camera.defocus_angle = 0.0;
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
 fn two_spheres(fname: Option<String>) -> Result<()> {
     let output_fname = if let Some(fname) = fname {
         fname
@@ -241,6 +281,7 @@ fn main() -> Result<()> {
         1 => random_balls(env::args().nth(2)),
         2 => two_spheres(env::args().nth(2)),
         3 => earth(env::args().nth(2)),
+        4 => two_perlin_spheres(env::args().nth(2)),
         _ => {
             println!("not implemented");
             Ok(())

@@ -1,3 +1,4 @@
+use crate::perlin::Perlin;
 use crate::traits::Texture;
 use crate::Color;
 use crate::{Interval, Point3};
@@ -91,10 +92,21 @@ impl Texture for ImageTexture {
         let i = (u * width as f64) as u32;
         let j = (v * height as f64) as u32;
         let pixel = self.image.get_pixel(i, j);
-        let [r, g, b, _] = pixel.0;
+        let [r, g, b, _] = pixel.0; // rgba
         let r = r as f64 / 256.0;
         let g = g as f64 / 256.0;
         let b = b as f64 / 256.0;
         Color::new(r, g, b)
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct NoiseTexture {
+    noise: Perlin,
+}
+
+impl Texture for NoiseTexture {
+    fn value(&self, u: f64, v: f64, p: &Point3) -> Color {
+        Color::new(1.0, 1.0, 1.0) * self.noise.noise(p)
     }
 }
