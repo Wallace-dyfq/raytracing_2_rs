@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::HitRecord;
 use crate::Hittable;
@@ -12,15 +13,18 @@ pub struct Sphere {
     radius: f64,
     material: Rc<dyn Scatter>,
     center_vec: Option<Vec3>,
+    bbox: AABB,
 }
 
 impl Sphere {
     pub fn new(center0: Point3, radius: f64, material: Rc<dyn Scatter>) -> Self {
+        let rvec = Vec3::new(radius, radius, radius);
         Sphere {
-            center0,
+            center0: center0.clone(),
             radius,
             material,
             center_vec: None,
+            bbox: AABB::new(&(&center0 - &rvec), &(&center0 + &rvec)),
         }
     }
 
@@ -30,11 +34,17 @@ impl Sphere {
         radius: f64,
         material: Rc<dyn Scatter>,
     ) -> Self {
+        // since moving is linear, we can merge two boxes here
+        let rvec = Vec3::new(radius, radius, radius);
+        let box1 = AABB::new(&(&center0 - &rvec), &(&center0 + &rvec));
+        let box2 = AABB::new(&(&center1 - &rvec), &(&center1 + &rvec));
+        let bbox = AABB::merge(&box1, &box2);
         Sphere {
             center0: center0.clone(),
             radius,
             material,
             center_vec: Some(center1 - center0),
+            bbox,
         }
     }
 
@@ -50,6 +60,10 @@ impl Sphere {
 }
 
 impl Hittable for Sphere {
+    fn bounding_box(&self) -> AABB {
+        self.bbox.clone()
+    }
+
     fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord> {
         let center = self.center(ray.tm);
         let oc = &ray.orig - &center;

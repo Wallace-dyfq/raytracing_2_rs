@@ -1,3 +1,5 @@
+mod aabb;
+mod bvh;
 mod camera;
 mod color;
 mod hittables;
@@ -10,6 +12,7 @@ mod utils;
 mod vec3;
 use std::env;
 
+use bvh::BvhNode;
 use camera::Camera;
 use color::write_color;
 use color::Color;
@@ -61,7 +64,7 @@ fn main() -> Result<()> {
     // ground
     //meterial
     let material_ground = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         material_ground.clone(),
@@ -82,37 +85,39 @@ fn main() -> Result<()> {
                 let sphere_material = get_rand_material(choose_mat);
                 if choose_mat < 0.8 {
                     let center1 = &center + Vec3::new(0.0, utils::random_f64_range(0.0, 0.5), 0.0);
-                    world.add(Box::new(Sphere::new_moving(
+                    world.add(Rc::new(Sphere::new_moving(
                         center,
                         center1,
                         0.2,
                         sphere_material.clone(),
                     )));
                 } else {
-                    world.add(Box::new(Sphere::new(center, 0.2, sphere_material.clone())));
+                    world.add(Rc::new(Sphere::new(center, 0.2, sphere_material.clone())));
                 }
             }
         }
     }
     // a few big balls
     let material_1 = Rc::new(Dielectric::new(1.5));
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(0.0, 1.0, 0.0),
         1.0,
         material_1.clone(),
     )));
     let material_2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material_2.clone(),
     )));
     let material_3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
-    world.add(Box::new(Sphere::new(
+    world.add(Rc::new(Sphere::new(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
         material_3.clone(),
     )));
+    let bvh = BvhNode::new_from_hittables(&world);
+    let world = Hittables::new(Rc::new(bvh));
 
     let image_width = 400; // pixels
                            // camera

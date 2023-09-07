@@ -1,3 +1,4 @@
+use rand::distributions::uniform::SampleUniform;
 use rand::prelude::*;
 pub const INFINITY: f64 = f64::MAX;
 pub const PI: f64 = std::f64::consts::PI;
@@ -15,6 +16,14 @@ pub fn random_f64() -> f64 {
     y
 }
 
+pub fn random_range<T>(min: T, max: T) -> T
+where
+    T: SampleUniform + Ord,
+{
+    let mut rng = rand::thread_rng();
+    let y: T = rng.gen_range(min..max); // generates a float between min and max
+    y
+}
 // generate random number between given min and max
 pub fn random_f64_range(min: f64, max: f64) -> f64 {
     let mut rng = rand::thread_rng();

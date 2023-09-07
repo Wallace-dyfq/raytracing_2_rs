@@ -1,3 +1,4 @@
+use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::traits::{Hittable, Scatter};
 use crate::Lambertian;
@@ -37,11 +38,18 @@ impl HitRecord {
 }
 #[derive(Default)]
 pub struct Hittables {
-    pub objects: Vec<Box<dyn Hittable>>,
+    pub objects: Vec<Rc<dyn Hittable>>,
+    bbox: AABB,
 }
 
 impl Hittables {
-    pub fn add(&mut self, obj: Box<dyn Hittable>) {
+    pub fn new(hitable: Rc<dyn Hittable>) -> Self {
+        let mut s = Self::default();
+        s.add(hitable);
+        s
+    }
+    pub fn add(&mut self, obj: Rc<dyn Hittable>) {
+        self.bbox = AABB::merge(&self.bbox, &obj.bounding_box());
         self.objects.push(obj);
     }
 }
@@ -56,5 +64,8 @@ impl Hittable for Hittables {
             }
         }
         hit_record
+    }
+    fn bounding_box(&self) -> AABB {
+        self.bbox.clone()
     }
 }
