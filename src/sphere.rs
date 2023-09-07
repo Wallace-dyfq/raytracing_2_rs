@@ -1,5 +1,6 @@
 use crate::aabb::AABB;
 use crate::interval::Interval;
+use crate::utils::PI;
 use crate::HitRecord;
 use crate::Hittable;
 use crate::Ray;
@@ -57,6 +58,13 @@ impl Sphere {
             self.center0.clone()
         }
     }
+    pub fn get_shpere_uv(p: &Point3) -> (f64, f64) {
+        let theta = (-p.y()).acos();
+        let phi = (-p.z()).atan2(p.x()) + PI;
+        let u = phi / (2.0 * PI);
+        let v = theta / PI;
+        (u, v)
+    }
 }
 
 impl Hittable for Sphere {
@@ -82,12 +90,11 @@ impl Hittable for Sphere {
                     return None;
                 }
             }
-            let mut hit_record = HitRecord::new();
-            hit_record.t = root;
-            hit_record.point = ray.at(root);
+            let mut hit_record =
+                HitRecord::new(ray.at(root), self.material.clone(), root, 0.0, 0.0);
             let outward_normal = (&hit_record.point - &center) / self.radius;
             hit_record.set_face_normal(&ray, &outward_normal);
-            hit_record.material = self.material.clone();
+            (hit_record.u, hit_record.v) = Self::get_shpere_uv(&outward_normal);
             Some(hit_record)
         }
     }

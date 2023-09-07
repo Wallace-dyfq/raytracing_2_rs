@@ -7,10 +7,12 @@ mod interval;
 mod material;
 mod ray;
 mod sphere;
+mod texture;
 mod traits;
 mod utils;
 mod vec3;
 use std::env;
+use texture::{CheckerTexture, ImageTexture, SolidColor};
 
 use bvh::BvhNode;
 use camera::Camera;
@@ -34,15 +36,14 @@ fn get_rand_material(choose_mat: f64) -> Rc<dyn Scatter> {
     match choose_mat {
         x if x < 0.8 => {
             // difuse
-            Rc::new(Lambertian::new(
-                &Color::random(0.0, 1.0) * &Color::random(0.0, 1.0),
-            ))
+            let color = &Color::random(0.0, 1.0) * &Color::random(0.0, 1.0);
+            Rc::new(Lambertian::new(Rc::new(SolidColor::new(color))))
         }
         x if x < 0.95 => {
             // matel
             let albedo = Color::random(0.5, 1.0);
             let fuzz = utils::random_f64_range(0.0, 0.5);
-            Rc::new(Metal::new(albedo, fuzz))
+            Rc::new(Metal::new(Rc::new(SolidColor::new(albedo)), fuzz))
         }
         _ => {
             // glass
@@ -51,9 +52,90 @@ fn get_rand_material(choose_mat: f64) -> Rc<dyn Scatter> {
     }
 }
 
-fn main() -> Result<()> {
-    let arg1 = env::args().nth(1);
-    let output_fname = if let Some(fname) = arg1 {
+fn earth(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let earth_texture = Rc::new(ImageTexture::new("earthmap.jpg".to_string()));
+    let earth_surface = Rc::new(Lambertian::new(earth_texture));
+
+    let globe = Rc::new(Sphere::new(
+        Point3::new(0.0, 0.0, 0.0),
+        2.0,
+        earth_surface.clone(),
+    ));
+
+    let mut world = Hittables::default();
+    world.add(globe);
+
+    let image_width = 400;
+    let mut camera = Camera::new(
+        16.0 / 9.0,
+        image_width, /* image width*/
+        100,         /* sample per pixel */
+        50,          /* max depth */
+        20.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(15.0, 5.0, 13.0);
+    camera.look_at = Point3::new(0.0, 0.0, 0.0);
+    camera.defocus_angle = 0.0;
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
+
+fn two_spheres(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let mut world = Hittables::default();
+    let checker = Rc::new(CheckerTexture::new_from_colors(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let material_ground = Rc::new(Lambertian::new(checker));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, -10.0, 0.0),
+        10.0,
+        material_ground.clone(),
+    )));
+    world.add(Rc::new(Sphere::new(
+        Point3::new(0.0, 10.0, 0.0),
+        10.0,
+        material_ground.clone(),
+    )));
+    let image_width = 400;
+    let mut camera = Camera::new(
+        16.0 / 9.0,
+        image_width, /* image width*/
+        100,         /* sample per pixel */
+        50,          /* max depth */
+        20.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(13.0, 2.0, 3.0);
+    camera.look_at = Point3::new(0.0, 0.0, 0.0);
+    camera.defocus_angle = 0.0;
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
+fn random_balls(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
         fname
     } else {
         "images/image_0.ppm".to_string()
@@ -63,7 +145,12 @@ fn main() -> Result<()> {
     let mut world = Hittables::default();
     // ground
     //meterial
-    let material_ground = Rc::new(Lambertian::new(Color::new(0.5, 0.5, 0.5)));
+    let checker = Rc::new(CheckerTexture::new_from_colors(
+        0.32,
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let material_ground = Rc::new(Lambertian::new(checker));
     world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -104,13 +191,18 @@ fn main() -> Result<()> {
         1.0,
         material_1.clone(),
     )));
-    let material_2 = Rc::new(Lambertian::new(Color::new(0.4, 0.2, 0.1)));
+    let material_2 = Rc::new(Lambertian::new(Rc::new(SolidColor::new(Color::new(
+        0.4, 0.2, 0.1,
+    )))));
     world.add(Rc::new(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         material_2.clone(),
     )));
-    let material_3 = Rc::new(Metal::new(Color::new(0.7, 0.6, 0.5), 0.0));
+    let material_3 = Rc::new(Metal::new(
+        Rc::new(SolidColor::new(Color::new(0.7, 0.6, 0.5))),
+        0.0,
+    ));
     world.add(Rc::new(Sphere::new(
         Point3::new(4.0, 1.0, 0.0),
         1.0,
@@ -138,4 +230,20 @@ fn main() -> Result<()> {
         eprintln!("Program runs NOT Ok");
     }
     Ok(())
+}
+fn main() -> Result<()> {
+    let case: u8 = env::args()
+        .nth(1)
+        .unwrap_or("1".to_string())
+        .parse()
+        .unwrap();
+    match case {
+        1 => random_balls(env::args().nth(2)),
+        2 => two_spheres(env::args().nth(2)),
+        3 => earth(env::args().nth(2)),
+        _ => {
+            println!("not implemented");
+            Ok(())
+        }
+    }
 }

@@ -2,6 +2,7 @@ use crate::aabb::AABB;
 use crate::interval::Interval;
 use crate::Color;
 use crate::HitRecord;
+use crate::Point3;
 use crate::Ray;
 pub trait Hittable {
     fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord>;
@@ -18,4 +19,8 @@ pub trait Scatter {
         attenuation: &mut Color,
         ray_scattered: &mut Ray,
     ) -> bool;
+}
+
+pub trait Texture {
+    fn value(&self, u: f64, v: f64, p: &Point3) -> Color;
 }

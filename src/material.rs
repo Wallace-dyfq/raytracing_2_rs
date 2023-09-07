@@ -1,19 +1,22 @@
+use crate::texture::{CheckerTexture, SolidColor};
+use crate::traits::Texture;
 use crate::utils::random_f64;
 use crate::Color;
 use crate::Ray;
 use crate::Scatter;
 use crate::Vec3;
+use std::rc::Rc;
 
 // diffusive
-#[derive(Default, Debug, Clone)]
+#[derive(Clone)]
 pub struct Lambertian {
-    albedo: Color,
+    albedo: Rc<dyn Texture>,
 }
 
 // reflective
-#[derive(Default, Debug, Clone)]
+#[derive(Clone)]
 pub struct Metal {
-    albedo: Color,
+    albedo: Rc<dyn Texture>,
     fuzz: f64,
 }
 
@@ -23,8 +26,14 @@ pub struct Dielectric {
 }
 
 impl Lambertian {
-    pub fn new(color: Color) -> Self {
-        Self { albedo: color }
+    pub fn new_from_color(color: Color) -> Self {
+        Self {
+            albedo: Rc::new(SolidColor::new(color)),
+        }
+    }
+
+    pub fn new(texture: Rc<dyn Texture>) -> Self {
+        Self { albedo: texture }
     }
 }
 impl Scatter for Lambertian {
@@ -44,15 +53,22 @@ impl Scatter for Lambertian {
             dir: scatter_direction,
             tm: ray_in.tm,
         };
-        attenuation.set_with_other(&self.albedo);
+        attenuation.set_with_other(&self.albedo.value(rec.u, rec.v, &rec.point));
         true
     }
 }
 
 impl Metal {
-    pub fn new(color: Color, fuzz: f64) -> Self {
+    pub fn new_from_color(color: Color, fuzz: f64) -> Self {
         Self {
-            albedo: color,
+            albedo: Rc::new(SolidColor::new(color)),
+            fuzz,
+        }
+    }
+
+    pub fn new(texture: Rc<dyn Texture>, fuzz: f64) -> Self {
+        Self {
+            albedo: texture,
             fuzz,
         }
     }
@@ -71,7 +87,7 @@ impl Scatter for Metal {
             dir: reflected + Vec3::random_unit_vec3() * self.fuzz,
             tm: ray_in.tm,
         };
-        attenuation.set_with_other(&self.albedo);
+        attenuation.set_with_other(&self.albedo.value(rec.u, rec.v, &rec.point));
         true
     }
 }

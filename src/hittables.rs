@@ -13,16 +13,20 @@ pub struct HitRecord {
     pub normal: Vec3,
     pub material: Rc<dyn Scatter>,
     pub t: f64,
+    pub u: f64,
+    pub v: f64,
     pub front_face: bool,
 }
 
 impl HitRecord {
-    pub fn new() -> Self {
+    pub fn new(point: Point3, material: Rc<dyn Scatter>, t: f64, u: f64, v: f64) -> Self {
         Self {
-            point: Point3::default(),
-            normal: Vec3::default(),
-            material: Rc::new(Lambertian::default()),
-            t: 0.0,
+            point,
+            normal: Vec3::new(0.0, 0.0, 0.0),
+            material,
+            t,
+            u,
+            v,
             front_face: false,
         }
     }
