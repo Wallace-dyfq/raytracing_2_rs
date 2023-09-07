@@ -61,7 +61,7 @@ fn earth(fname: Option<String>) -> Result<()> {
     };
     let file = File::create(output_fname)?;
     let mut writer = BufWriter::new(file);
-    let earth_texture = Rc::new(ImageTexture::new("earthmap.jpg".to_string()));
+    let earth_texture = Rc::new(ImageTexture::new("./resources/earthmap.jpg".to_string()));
     let earth_surface = Rc::new(Lambertian::new(earth_texture));
 
     let globe = Rc::new(Sphere::new(
