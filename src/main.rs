@@ -101,7 +101,7 @@ fn two_perlin_spheres(fname: Option<String>) -> Result<()> {
     let file = File::create(output_fname)?;
     let mut writer = BufWriter::new(file);
     let mut world = Hittables::default();
-    let pertext = Rc::new(NoiseTexture::default());
+    let pertext = Rc::new(NoiseTexture::new(4.0));
     let material_ground = Rc::new(Lambertian::new(pertext));
     world.add(Rc::new(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
