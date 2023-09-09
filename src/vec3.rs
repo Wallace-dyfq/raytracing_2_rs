@@ -353,6 +353,29 @@ impl ops::Neg for &Vec3 {
         }
     }
 }
+
+impl ops::Index<usize> for Vec3 {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("index out of bound"),
+        }
+    }
+}
+impl ops::IndexMut<usize> for Vec3 {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match index {
+            0 => &mut self.x,
+            1 => &mut self.y,
+            2 => &mut self.z,
+            _ => panic!("index out of bound"),
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;

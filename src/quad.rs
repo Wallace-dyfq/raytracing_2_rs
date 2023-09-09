@@ -14,7 +14,7 @@ pub struct Quad {
     w: Vec3,
 }
 // box is a reserved keyword for rust
-pub fn rectangle(a: Point3, b: Point3, material: Rc<dyn Material>) -> Rc<Hittables> {
+pub fn create_box(a: Point3, b: Point3, material: Rc<dyn Material>) -> Rc<Hittables> {
     let mut sides = Hittables::default();
     let min = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
 
