@@ -27,6 +27,30 @@ impl AABB {
         }
     }
 
+    /// return an AABB that has no side narrow than some delta, paddin if necessary
+    pub fn pad(&self) -> Self {
+        let delta = 0.0001;
+        let new_x = if self.x.size() >= delta {
+            self.x.clone()
+        } else {
+            self.x.expand(delta)
+        };
+        let new_y = if self.y.size() >= delta {
+            self.y.clone()
+        } else {
+            self.y.expand(delta)
+        };
+        let new_z = if self.z.size() >= delta {
+            self.z.clone()
+        } else {
+            self.z.expand(delta)
+        };
+        Self {
+            x: new_x,
+            y: new_y,
+            z: new_z,
+        }
+    }
     // merge two boxes
     pub fn merge(a: &Self, b: &Self) -> Self {
         Self {

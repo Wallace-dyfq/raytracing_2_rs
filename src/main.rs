@@ -6,6 +6,7 @@ mod hittables;
 mod interval;
 mod material;
 mod perlin;
+mod quad;
 mod ray;
 mod sphere;
 mod texture;
@@ -22,6 +23,7 @@ use color::Color;
 use hittables::{HitRecord, Hittables};
 use interval::Interval;
 use material::{Dielectric, Lambertian, Metal};
+use quad::Quad;
 use ray::Ray;
 use sphere::Sphere;
 use std::fs::File;
@@ -92,6 +94,82 @@ fn earth(fname: Option<String>) -> Result<()> {
     Ok(())
 }
 
+fn quad(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let mut world = Hittables::default();
+
+    // material
+    let left_red = Rc::new(Lambertian::new_from_color(Color::new(1.0, 0.2, 0.2)));
+    let back_green = Rc::new(Lambertian::new_from_color(Color::new(0.2, 1.0, 0.2)));
+    let right_blue = Rc::new(Lambertian::new_from_color(Color::new(0.2, 0.2, 1.0)));
+    let upper_orange = Rc::new(Lambertian::new_from_color(Color::new(1.0, 0.5, 0.0)));
+    let lower_teal = Rc::new(Lambertian::new_from_color(Color::new(0.2, 0.8, 0.8)));
+
+    // quads
+    let quad1 = Rc::new(Quad::new(
+        Point3::new(-3.0, -2.0, 5.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        left_red,
+    ));
+
+    let quad2 = Rc::new(Quad::new(
+        Point3::new(-2.0, -2.0, 0.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        back_green,
+    ));
+    let quad3 = Rc::new(Quad::new(
+        Point3::new(3.0, -2.0, 1.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        Vec3::new(0.0, 4.0, 0.0),
+        right_blue,
+    ));
+    let quad4 = Rc::new(Quad::new(
+        Point3::new(-2.0, 3.0, 1.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 4.0),
+        upper_orange,
+    ));
+    let quad5 = Rc::new(Quad::new(
+        Point3::new(-2.0, -3.0, 5.0),
+        Vec3::new(4.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -4.0),
+        lower_teal,
+    ));
+
+    world.add(quad1);
+    world.add(quad2);
+    world.add(quad3);
+    world.add(quad4);
+    world.add(quad5);
+
+    let image_width = 400;
+    let mut camera = Camera::new(
+        1.0,         /* aspect_ratio */
+        image_width, /* image width*/
+        100,         /* sample per pixel */
+        50,          /* max depth */
+        80.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(0.0, 0.0, 9.0);
+    camera.look_at = Point3::new(0.0, 0.0, 0.0);
+    camera.defocus_angle = 0.0;
+    //    let bvh = BvhNode::new_from_hittables(&world);
+    //    let world = Hittables::new(Rc::new(bvh));
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
 fn two_perlin_spheres(fname: Option<String>) -> Result<()> {
     let output_fname = if let Some(fname) = fname {
         fname
@@ -282,6 +360,7 @@ fn main() -> Result<()> {
         2 => two_spheres(env::args().nth(2)),
         3 => earth(env::args().nth(2)),
         4 => two_perlin_spheres(env::args().nth(2)),
+        5 => quad(env::args().nth(2)),
         _ => {
             println!("not implemented");
             Ok(())
