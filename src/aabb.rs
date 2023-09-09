@@ -1,6 +1,8 @@
 use crate::Interval;
 use crate::Point3;
 use crate::Ray;
+use crate::Vec3;
+use std::ops;
 
 #[derive(Debug, Clone, Default)]
 pub struct AABB {
@@ -104,5 +106,40 @@ impl AABB {
             return false;
         }
         true
+    }
+}
+
+impl ops::Add<&AABB> for &Vec3 {
+    type Output = AABB;
+    fn add(self, rhs: &AABB) -> Self::Output {
+        rhs + self
+    }
+}
+
+impl ops::Add<&AABB> for Vec3 {
+    type Output = AABB;
+    fn add(self, rhs: &AABB) -> Self::Output {
+        rhs + &self
+    }
+}
+
+impl ops::Add<&Vec3> for &AABB {
+    type Output = AABB;
+    fn add(self, rhs: &Vec3) -> Self::Output {
+        AABB {
+            x: &self.x + rhs.x(),
+            y: &self.x + rhs.y(),
+            z: &self.x + rhs.z(),
+        }
+    }
+}
+impl ops::Add<&Vec3> for AABB {
+    type Output = AABB;
+    fn add(self, rhs: &Vec3) -> Self::Output {
+        AABB {
+            x: &self.x + rhs.x(),
+            y: &self.x + rhs.y(),
+            z: &self.x + rhs.z(),
+        }
     }
 }

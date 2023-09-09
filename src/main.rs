@@ -461,6 +461,20 @@ fn cornell_box(fname: Option<String>) -> Result<()> {
         Vec3::new(0.0, 555.0, 0.0),
         white.clone(),
     )));
+
+    world.add(quad::rectangle(
+        Point3::new(130.0, 0.0, 65.0),
+        Point3::new(295.0, 165.0, 230.0),
+        white.clone(),
+    ));
+    world.add(quad::rectangle(
+        Point3::new(264.0, 0.0, 295.0),
+        Point3::new(430.0, 330.0, 460.0),
+        white.clone(),
+    ));
+
+    //    let bvh = BvhNode::new_from_hittables(&world);
+    //    let world = Hittables::new(Rc::new(bvh));
     let image_width = 600;
     let mut camera = Camera::new(
         1.0,

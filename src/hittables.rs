@@ -73,3 +73,37 @@ impl Hittable for Hittables {
         self.bbox.clone()
     }
 }
+
+pub struct Translate {
+    object: Rc<dyn Hittable>,
+    offset: Vec3,
+    bbox: AABB,
+}
+
+impl Translate {
+    pub fn new(p: Rc<dyn Hittable>, displacement: &Vec3) -> Self {
+        Self {
+            object: p.clone(),
+            offset: displacement.clone(),
+            bbox: &p.bounding_box() + &displacement,
+        }
+    }
+}
+
+impl Hittable for Translate {
+    fn bounding_box(&self) -> AABB {
+        self.bbox.clone()
+    }
+
+    fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord> {
+        // move the ray backward for the offset
+        let ray_offset = Ray::new(&ray.orig - &self.offset, ray.dir.clone(), ray.tm);
+
+        if let Some(mut rec) = self.object.hit(&ray_offset, ray_t) {
+            rec.point += &self.offset;
+            Some(rec)
+        } else {
+            return None;
+        }
+    }
+}

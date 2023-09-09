@@ -153,6 +153,7 @@ impl ops::Add<Vec3> for Vec3 {
         }
     }
 }
+
 impl ops::Add<Vec3> for &Vec3 {
     type Output = Vec3;
 
@@ -332,6 +333,26 @@ impl ops::MulAssign<f64> for Vec3 {
     }
 }
 
+impl ops::Neg for Vec3 {
+    type Output = Self;
+    fn neg(self) -> Self::Output {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+impl ops::Neg for &Vec3 {
+    type Output = Vec3;
+    fn neg(self) -> Self::Output {
+        Vec3 {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
