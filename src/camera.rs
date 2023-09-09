@@ -15,6 +15,7 @@ pub struct Camera {
     pub vup: Vec3,              // camera-relative "up" direction
     pub defocus_angle: f64,     // variation angle of rays through each pixel
     pub focus_dist: f64,        // distance from camera look from point to plane of perfect focus
+    pub background: Color,      // scene background color
     image_height: u32,
     center: Point3, // Camera center
     pixel00_loc: Point3,
@@ -146,17 +147,21 @@ impl Camera {
         if let Some(rec) = hittables.hit(&ray, &mut Interval::new(0.001, INFINITY)) {
             let mut scattered = Ray::default();
             let mut attenuation = Color::default();
+            let color_from_emission = rec.material.emitted(rec.u, rec.v, &rec.point);
+
             if rec
                 .material
                 .scatter(&ray, &rec, &mut attenuation, &mut scattered)
             {
-                return &attenuation * &self.ray_color(&scattered, depth - 1, &hittables);
+                let color_from_scatter =
+                    &attenuation * &self.ray_color(&scattered, depth - 1, &hittables);
+                return color_from_emission + color_from_scatter;
+            } else {
+                return color_from_emission;
             }
-            return Color::default();
+        } else {
+            // the ray hits nothing
+            return self.background.clone();
         }
-        let unit_direction = Vec3::unit_vector(&ray.dir);
-        let a = 0.5 * (unit_direction.y() + 1.0);
-
-        Color::new(1.0, 1.0, 1.0) * (1.0 - a) + Color::new(0.5, 0.7, 1.0) * a
     }
 }

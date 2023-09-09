@@ -142,7 +142,7 @@ impl Material for Dielectric {
 }
 
 pub struct DiffuseLight {
-    emit: Rc<dyn Texture>,
+    pub emit: Rc<dyn Texture>,
 }
 
 impl DiffuseLight {
@@ -155,12 +155,12 @@ impl DiffuseLight {
             emit: Rc::new(SolidColor::new(color)),
         }
     }
-
-    pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
-        self.emit.value(u, v, p)
-    }
 }
 impl Material for DiffuseLight {
+    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        self.emit.value(u, v, p)
+    }
+
     fn scatter(
         &self,
         ray_in: &Ray,

@@ -13,22 +13,22 @@ mod texture;
 mod traits;
 mod utils;
 mod vec3;
-use std::env;
-use texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor};
-
 use bvh::BvhNode;
 use camera::Camera;
 use color::write_color;
 use color::Color;
 use hittables::{HitRecord, Hittables};
 use interval::Interval;
+use material::DiffuseLight;
 use material::{Dielectric, Lambertian, Metal};
 use quad::Quad;
 use ray::Ray;
 use sphere::Sphere;
+use std::env;
 use std::fs::File;
 use std::io::BufWriter;
 use std::rc::Rc;
+use texture::{CheckerTexture, ImageTexture, NoiseTexture, SolidColor};
 use traits::{Hittable, Material};
 use vec3::{Point3, Vec3};
 pub type Error = Box<dyn std::error::Error>;
@@ -86,6 +86,7 @@ fn earth(fname: Option<String>) -> Result<()> {
     camera.look_from = Point3::new(15.0, 5.0, 13.0);
     camera.look_at = Point3::new(0.0, 0.0, 0.0);
     camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.7, 0.8, 1.0);
     if let Ok(()) = camera.render(&world, &mut writer) {
         println!("Program runs Ok");
     } else {
@@ -161,6 +162,7 @@ fn quad(fname: Option<String>) -> Result<()> {
     camera.look_from = Point3::new(0.0, 0.0, 9.0);
     camera.look_at = Point3::new(0.0, 0.0, 0.0);
     camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.7, 0.8, 1.0);
     //    let bvh = BvhNode::new_from_hittables(&world);
     //    let world = Hittables::new(Rc::new(bvh));
     if let Ok(()) = camera.render(&world, &mut writer) {
@@ -202,6 +204,7 @@ fn two_perlin_spheres(fname: Option<String>) -> Result<()> {
     camera.look_from = Point3::new(13.0, 2.0, 3.0);
     camera.look_at = Point3::new(0.0, 0.0, 0.0);
     camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.7, 0.8, 1.0);
     if let Ok(()) = camera.render(&world, &mut writer) {
         println!("Program runs Ok");
     } else {
@@ -245,6 +248,7 @@ fn two_spheres(fname: Option<String>) -> Result<()> {
     camera.look_from = Point3::new(13.0, 2.0, 3.0);
     camera.look_at = Point3::new(0.0, 0.0, 0.0);
     camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.7, 0.8, 1.0);
     if let Ok(()) = camera.render(&world, &mut writer) {
         println!("Program runs Ok");
     } else {
@@ -342,12 +346,155 @@ fn random_balls(fname: Option<String>) -> Result<()> {
     camera.look_at = Point3::new(0.0, 0.0, 0.0);
     camera.defocus_angle = 0.6;
     camera.focus_dist = 10.0;
+    camera.background = Color::new(0.7, 0.8, 1.0);
     if let Ok(()) = camera.render(&world, &mut writer) {
         println!("Program runs Ok");
     } else {
         eprintln!("Program runs NOT Ok");
     }
     Ok(())
+}
+
+fn simple_light(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let mut world = Hittables::default();
+
+    let pertext = Rc::new(NoiseTexture::new(4.0));
+    let background_ball = Rc::new(Sphere::new(
+        Point3::new(0.0, -1000.0, 0.0),
+        1000.0,
+        Rc::new(Lambertian::new(pertext.clone())),
+    ));
+    let ball_1 = Rc::new(Sphere::new(
+        Point3::new(0.0, 2.0, 0.0),
+        2.0,
+        Rc::new(Lambertian::new(pertext.clone())),
+    ));
+
+    let difflight = Rc::new(DiffuseLight::new_from_color(Color::new(4.0, 4.0, 4.0)));
+    let lightsource = Rc::new(Quad::new(
+        Point3::new(3.0, 1.0, -2.0),
+        Vec3::new(2.0, 0.0, 0.0),
+        Vec3::new(0.0, 2.0, 0.0),
+        difflight.clone(),
+    ));
+    let ball_light = Rc::new(Sphere::new(
+        Point3::new(0.0, 7.0, 0.0),
+        2.0,
+        difflight.clone(),
+    ));
+    world.add(background_ball);
+    world.add(ball_1);
+    world.add(lightsource);
+    world.add(ball_light);
+
+    let mut camera = get_default_camera(400);
+
+    camera.look_from = Point3::new(26.0, 3.0, 6.0);
+    camera.look_at = Point3::new(0.0, 2.0, 0.0);
+    camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.0, 0.0, 0.0);
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
+fn cornell_box(fname: Option<String>) -> Result<()> {
+    let output_fname = if let Some(fname) = fname {
+        fname
+    } else {
+        "images/image_0.ppm".to_string()
+    };
+    let file = File::create(output_fname)?;
+    let mut writer = BufWriter::new(file);
+    let mut world = Hittables::default();
+
+    let red = Rc::new(Lambertian::new_from_color(Color::new(0.65, 0.05, 0.05)));
+    let white = Rc::new(Lambertian::new_from_color(Color::new(0.73, 0.73, 0.73)));
+    let green = Rc::new(Lambertian::new_from_color(Color::new(0.12, 0.45, 0.15)));
+    let light = Rc::new(DiffuseLight::new_from_color(Color::new(15.0, 15.0, 15.0)));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(555.0, 10.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        green.clone(),
+    )));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        red.clone(),
+    )));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(343.0, 554.0, 332.0),
+        Vec3::new(-130.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -105.0),
+        light.clone(),
+    )));
+
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, 555.0),
+        white.clone(),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(555.0, 555.0, 555.0),
+        Vec3::new(-555.0, 0.0, 0.0),
+        Vec3::new(0.0, 0.0, -555.0),
+        white.clone(),
+    )));
+    world.add(Rc::new(Quad::new(
+        Point3::new(0.0, 0.0, 555.0),
+        Vec3::new(555.0, 0.0, 0.0),
+        Vec3::new(0.0, 555.0, 0.0),
+        white.clone(),
+    )));
+    let image_width = 600;
+    let mut camera = Camera::new(
+        1.0,
+        image_width, /* image width*/
+        200,         /* sample per pixel */
+        50,          /* max depth */
+        40.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(278.0, 278.0, -800.0);
+    camera.look_at = Point3::new(278.0, 278.0, 0.0);
+    camera.defocus_angle = 0.0;
+    camera.background = Color::new(0.0, 0.0, 0.0);
+    if let Ok(()) = camera.render(&world, &mut writer) {
+        println!("Program runs Ok");
+    } else {
+        eprintln!("Program runs NOT Ok");
+    }
+    Ok(())
+}
+
+// a sensible default camera
+fn get_default_camera(image_width: u32) -> Camera {
+    let mut camera = Camera::new(
+        16.0 / 9.0,
+        image_width, /* image width*/
+        100,         /* sample per pixel */
+        50,          /* max depth */
+        20.0,        /* vfov */
+    );
+    camera.look_from = Point3::new(13.0, 2.0, 3.0);
+    camera.look_at = Point3::new(0.0, 0.0, 0.0);
+    camera.defocus_angle = 0.6;
+    camera.background = Color::new(0.7, 0.8, 1.0);
+    camera
 }
 fn main() -> Result<()> {
     let case: u8 = env::args()
@@ -361,6 +508,8 @@ fn main() -> Result<()> {
         3 => earth(env::args().nth(2)),
         4 => two_perlin_spheres(env::args().nth(2)),
         5 => quad(env::args().nth(2)),
+        6 => simple_light(env::args().nth(2)),
+        7 => cornell_box(env::args().nth(2)),
         _ => {
             println!("not implemented");
             Ok(())
