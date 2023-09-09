@@ -1,12 +1,12 @@
 use crate::aabb::AABB;
-use crate::{HitRecord, Hittable, Point3, Ray, Scatter, Vec3};
+use crate::{HitRecord, Hittable, Material, Point3, Ray, Vec3};
 use std::rc::Rc;
 
 pub struct Quad {
     q: Point3,
     u: Vec3,
     v: Vec3,
-    material: Rc<dyn Scatter>,
+    material: Rc<dyn Material>,
     normal: Vec3, //  unit vector
     d: f64,       // distance from origin to the quad along normal
     bbox: AABB,
@@ -14,7 +14,7 @@ pub struct Quad {
 }
 
 impl Quad {
-    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Rc<dyn Scatter>) -> Self {
+    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Rc<dyn Material>) -> Self {
         let p = &q + (&u + &v);
         let bbox = AABB::new(&q, &p).pad();
         let n = u.cross(&v);

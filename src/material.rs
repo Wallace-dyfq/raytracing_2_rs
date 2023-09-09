@@ -2,8 +2,9 @@ use crate::texture::{CheckerTexture, SolidColor};
 use crate::traits::Texture;
 use crate::utils::random_f64;
 use crate::Color;
+use crate::Material;
+use crate::Point3;
 use crate::Ray;
-use crate::Scatter;
 use crate::Vec3;
 use std::rc::Rc;
 
@@ -36,7 +37,7 @@ impl Lambertian {
         Self { albedo: texture }
     }
 }
-impl Scatter for Lambertian {
+impl Material for Lambertian {
     fn scatter(
         &self,
         ray_in: &crate::ray::Ray,
@@ -73,7 +74,7 @@ impl Metal {
         }
     }
 }
-impl Scatter for Metal {
+impl Material for Metal {
     fn scatter(
         &self,
         ray_in: &Ray,
@@ -105,7 +106,7 @@ impl Dielectric {
     }
 }
 
-impl Scatter for Dielectric {
+impl Material for Dielectric {
     fn scatter(
         &self,
         ray_in: &Ray,
@@ -137,5 +138,36 @@ impl Scatter for Dielectric {
         };
 
         true
+    }
+}
+
+pub struct DiffuseLight {
+    emit: Rc<dyn Texture>,
+}
+
+impl DiffuseLight {
+    pub fn new(texture: Rc<dyn Texture>) -> Self {
+        Self { emit: texture }
+    }
+
+    pub fn new_from_color(color: Color) -> Self {
+        Self {
+            emit: Rc::new(SolidColor::new(color)),
+        }
+    }
+
+    pub fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        self.emit.value(u, v, p)
+    }
+}
+impl Material for DiffuseLight {
+    fn scatter(
+        &self,
+        ray_in: &Ray,
+        rec: &crate::hittables::HitRecord,
+        attenuation: &mut Color,
+        ray_scattered: &mut Ray,
+    ) -> bool {
+        false
     }
 }

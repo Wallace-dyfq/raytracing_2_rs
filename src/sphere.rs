@@ -3,8 +3,8 @@ use crate::interval::Interval;
 use crate::utils::PI;
 use crate::HitRecord;
 use crate::Hittable;
+use crate::Material;
 use crate::Ray;
-use crate::Scatter;
 use crate::{Point3, Vec3};
 use std::rc::Rc;
 
@@ -12,13 +12,13 @@ use std::rc::Rc;
 pub struct Sphere {
     center0: Point3,
     radius: f64,
-    material: Rc<dyn Scatter>,
+    material: Rc<dyn Material>,
     center_vec: Option<Vec3>,
     bbox: AABB,
 }
 
 impl Sphere {
-    pub fn new(center0: Point3, radius: f64, material: Rc<dyn Scatter>) -> Self {
+    pub fn new(center0: Point3, radius: f64, material: Rc<dyn Material>) -> Self {
         let rvec = Vec3::new(radius, radius, radius);
         Sphere {
             center0: center0.clone(),
@@ -33,7 +33,7 @@ impl Sphere {
         center0: Point3,
         center1: Point3,
         radius: f64,
-        material: Rc<dyn Scatter>,
+        material: Rc<dyn Material>,
     ) -> Self {
         // since moving is linear, we can merge two boxes here
         let rvec = Vec3::new(radius, radius, radius);

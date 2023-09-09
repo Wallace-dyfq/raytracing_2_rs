@@ -1,6 +1,6 @@
 use crate::aabb::AABB;
 use crate::interval::Interval;
-use crate::traits::{Hittable, Scatter};
+use crate::traits::{Hittable, Material};
 use crate::Lambertian;
 use crate::Point3;
 use crate::Ray;
@@ -11,7 +11,7 @@ use std::rc::Rc;
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
-    pub material: Rc<dyn Scatter>,
+    pub material: Rc<dyn Material>,
     pub t: f64,
     pub u: f64,
     pub v: f64,
@@ -19,7 +19,7 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new(point: Point3, material: Rc<dyn Scatter>, t: f64, u: f64, v: f64) -> Self {
+    pub fn new(point: Point3, material: Rc<dyn Material>, t: f64, u: f64, v: f64) -> Self {
         Self {
             point,
             normal: Vec3::new(0.0, 0.0, 0.0),

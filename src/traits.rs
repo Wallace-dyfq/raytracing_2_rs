@@ -10,8 +10,11 @@ pub trait Hittable {
     fn bounding_box(&self) -> AABB; // or ref?
 }
 
-//TODO: might be better to combine attenuation and ray into one struct?
-pub trait Scatter {
+pub trait Material {
+    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
+        Color::new(0.0, 0.0, 0.0)
+    }
+    //TODO: might be better to combine attenuation and ray into one struct?
     fn scatter(
         &self,
         ray_in: &Ray,

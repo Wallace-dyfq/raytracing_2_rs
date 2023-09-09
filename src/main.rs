@@ -29,13 +29,13 @@ use sphere::Sphere;
 use std::fs::File;
 use std::io::BufWriter;
 use std::rc::Rc;
-use traits::{Hittable, Scatter};
+use traits::{Hittable, Material};
 use vec3::{Point3, Vec3};
 pub type Error = Box<dyn std::error::Error>;
 pub type Result<T> = std::result::Result<T, Error>;
 
 // A helper function to randomly pick a material
-fn get_rand_material(choose_mat: f64) -> Rc<dyn Scatter> {
+fn get_rand_material(choose_mat: f64) -> Rc<dyn Material> {
     match choose_mat {
         x if x < 0.8 => {
             // difuse
