@@ -42,7 +42,7 @@ impl Hittable for ConstantMedium {
     ) -> Option<HitRecord> {
         //print occasional samples when debugging. To enable, set it to true
         const ENABLE_DEBUG: bool = false;
-        let debugging = ENABLE_DEBUG && random_f64() < 1e-4;
+        let debugging = ENABLE_DEBUG && random_f64() < 1e-5;
 
         let mut interval_1 = interval::UNIVERSE_INTERVAL;
         if let Some(mut rec1) = self.boundary.hit(ray, &mut interval_1) {

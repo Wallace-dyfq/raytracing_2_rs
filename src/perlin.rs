@@ -39,7 +39,7 @@ impl Perlin {
             weight *= 0.5;
             temp_p *= 2.0;
         }
-        accum
+        accum.abs()
     }
     pub fn noise(&self, p: &Point3) -> f64 {
         let u = p.x() - p.x().floor();
