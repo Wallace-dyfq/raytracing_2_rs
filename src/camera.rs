@@ -145,16 +145,11 @@ impl Camera {
             return Color::default();
         }
         if let Some(rec) = hittables.hit(&ray, &mut Interval::new(0.001, INFINITY)) {
-            let mut scattered = Ray::default();
-            let mut attenuation = Color::default();
             let color_from_emission = rec.material.emitted(rec.u, rec.v, &rec.point);
 
-            if rec
-                .material
-                .scatter(&ray, &rec, &mut attenuation, &mut scattered)
-            {
-                let color_from_scatter =
-                    &attenuation * &self.ray_color(&scattered, depth - 1, &hittables);
+            if let Some(scatter_info) = rec.material.scatter(&ray, &rec) {
+                let color_from_scatter = &scatter_info.attenuation
+                    * &self.ray_color(&scatter_info.ray_scattered, depth - 1, &hittables);
                 return color_from_emission + color_from_scatter;
             } else {
                 return color_from_emission;

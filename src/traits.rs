@@ -4,6 +4,12 @@ use crate::Color;
 use crate::HitRecord;
 use crate::Point3;
 use crate::Ray;
+
+#[derive(Debug, Clone, Default)]
+pub struct ScatterInfo {
+    pub attenuation: Color,
+    pub ray_scattered: Ray,
+}
 pub trait Hittable {
     fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord>;
 
@@ -15,13 +21,7 @@ pub trait Material {
         Color::new(0.0, 0.0, 0.0)
     }
     //TODO: might be better to combine attenuation and ray into one struct?
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        rec: &HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool;
+    fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<ScatterInfo>;
 }
 
 pub trait Texture {

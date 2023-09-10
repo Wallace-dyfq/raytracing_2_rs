@@ -1,5 +1,5 @@
 use crate::texture::{CheckerTexture, SolidColor};
-use crate::traits::Texture;
+use crate::traits::{ScatterInfo, Texture};
 use crate::utils::random_f64;
 use crate::Color;
 use crate::Material;
@@ -25,7 +25,6 @@ pub struct Metal {
 pub struct Dielectric {
     ir: f64, // index of reflection
 }
-
 impl Lambertian {
     pub fn new_from_color(color: Color) -> Self {
         Self {
@@ -42,20 +41,21 @@ impl Material for Lambertian {
         &self,
         ray_in: &crate::ray::Ray,
         rec: &crate::hittables::HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool {
+    ) -> Option<ScatterInfo> {
         let mut scatter_direction = &rec.normal + Vec3::random_unit_vec3();
         if scatter_direction.near_zero() {
             scatter_direction = rec.normal.clone();
         }
-        *ray_scattered = Ray {
+        let ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: scatter_direction,
             tm: ray_in.tm,
         };
-        attenuation.set_with_other(&self.albedo.value(rec.u, rec.v, &rec.point));
-        true
+        let attenuation = self.albedo.value(rec.u, rec.v, &rec.point);
+        Some(ScatterInfo {
+            attenuation,
+            ray_scattered,
+        })
     }
 }
 
@@ -75,21 +75,18 @@ impl Metal {
     }
 }
 impl Material for Metal {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        rec: &crate::hittables::HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool {
+    fn scatter(&self, ray_in: &Ray, rec: &crate::hittables::HitRecord) -> Option<ScatterInfo> {
         let reflected = Vec3::reflect(&ray_in.dir, &rec.normal);
-        *ray_scattered = Ray {
+        let ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: reflected + Vec3::random_unit_vec3() * self.fuzz,
             tm: ray_in.tm,
         };
-        attenuation.set_with_other(&self.albedo.value(rec.u, rec.v, &rec.point));
-        true
+        let attenuation = self.albedo.value(rec.u, rec.v, &rec.point);
+        Some(ScatterInfo {
+            attenuation,
+            ray_scattered,
+        })
     }
 }
 
@@ -107,15 +104,7 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        rec: &crate::hittables::HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool {
-        attenuation.set(1.0, 1.0, 1.0);
-
+    fn scatter(&self, ray_in: &Ray, rec: &crate::hittables::HitRecord) -> Option<ScatterInfo> {
         let refraction_ratio = if rec.front_face {
             1.0 / self.ir
         } else {
@@ -131,13 +120,18 @@ impl Material for Dielectric {
             } else {
                 Vec3::refract(&unit_direction, &rec.normal, refraction_ratio)
             };
-        *ray_scattered = Ray {
+        let ray_scattered = Ray {
             orig: rec.point.clone(),
             dir: direction,
             tm: ray_in.tm,
         };
 
-        true
+        let attenuation = Color::new(1.0, 1.0, 1.0);
+
+        Some(ScatterInfo {
+            attenuation,
+            ray_scattered,
+        })
     }
 }
 
@@ -161,14 +155,8 @@ impl Material for DiffuseLight {
         self.emit.value(u, v, p)
     }
 
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        rec: &crate::hittables::HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool {
-        false
+    fn scatter(&self, ray_in: &Ray, rec: &crate::hittables::HitRecord) -> Option<ScatterInfo> {
+        None
     }
 }
 
@@ -188,15 +176,12 @@ impl Isotropic {
 }
 
 impl Material for Isotropic {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        rec: &crate::hittables::HitRecord,
-        attenuation: &mut Color,
-        ray_scattered: &mut Ray,
-    ) -> bool {
-        *ray_scattered = Ray::new(rec.point.clone(), Vec3::random_unit_vec3(), ray_in.tm);
-        *attenuation = self.albedo.value(rec.u, rec.v, &rec.point);
-        true
+    fn scatter(&self, ray_in: &Ray, rec: &crate::hittables::HitRecord) -> Option<ScatterInfo> {
+        let ray_scattered = Ray::new(rec.point.clone(), Vec3::random_unit_vec3(), ray_in.tm);
+        let attenuation = self.albedo.value(rec.u, rec.v, &rec.point);
+        Some(ScatterInfo {
+            attenuation,
+            ray_scattered,
+        })
     }
 }
