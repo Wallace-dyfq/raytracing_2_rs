@@ -6,30 +6,30 @@ use crate::Color;
 use crate::Interval;
 use crate::Vec3;
 use crate::{HitRecord, Hittable, Material};
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct ConstantMedium {
-    boundary: Rc<dyn Hittable>,
+    boundary: Arc<dyn Hittable>,
     neg_inv_density: f64,
-    phase_function: Rc<dyn Material>,
+    phase_function: Arc<dyn Material>,
 }
 
 impl ConstantMedium {
     // d is density
-    pub fn new(b: Rc<dyn Hittable>, d: f64, a: Rc<dyn Texture>) -> ConstantMedium {
+    pub fn new(b: Arc<dyn Hittable>, d: f64, a: Arc<dyn Texture>) -> ConstantMedium {
         Self {
             boundary: b,
             neg_inv_density: -1.0 / d,
-            phase_function: Rc::new(Isotropic::new(a)),
+            phase_function: Arc::new(Isotropic::new(a)),
         }
     }
 
     // d is density
-    pub fn new_with_color(b: Rc<dyn Hittable>, d: f64, c: Color) -> ConstantMedium {
+    pub fn new_with_color(b: Arc<dyn Hittable>, d: f64, c: Color) -> ConstantMedium {
         Self {
             boundary: b,
             neg_inv_density: -1.0 / d,
-            phase_function: Rc::new(Isotropic::new_from_color(c)),
+            phase_function: Arc::new(Isotropic::new_from_color(c)),
         }
     }
 }

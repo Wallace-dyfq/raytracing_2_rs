@@ -2,6 +2,7 @@ use crate::utils::*;
 use crate::write_color;
 use crate::Result;
 use crate::{Color, Hittable, Hittables, Interval, Point3, Ray, Vec3};
+use rayon::prelude::*;
 use std::io::Write;
 #[derive(Debug, Default)]
 pub struct Camera {
@@ -50,6 +51,15 @@ impl Camera {
         camera
     }
 
+    fn render_pixel(&self, world: &Hittables, i: u32, j: u32) -> Color {
+        let mut pixel_color = Color::default();
+        for _ in 0..self.samples_per_pixel {
+            let r = self.get_ray(i, j);
+            pixel_color += &self.ray_color(&r, self.max_depth, world);
+        }
+        // Divide the color by number of samples per pixel
+        pixel_color / self.samples_per_pixel as f64
+    }
     // rdner world and write result to writter
     pub fn render<W>(&mut self, world: &Hittables, writer: &mut W) -> Result<()>
     where
@@ -61,15 +71,19 @@ impl Camera {
             "P3\n{} {}\n255\n",
             self.image_width, self.image_height
         )?;
-        for j in 0..self.image_height {
-            for i in 0..self.image_width {
-                let mut pixel_color = Color::default();
-                for _ in 0..self.samples_per_pixel {
-                    let r = self.get_ray(i, j);
-                    pixel_color += &self.ray_color(&r, self.max_depth, world);
+        let rows_of_pixels: Vec<_> = (0..self.image_height)
+            .into_par_iter()
+            .map(|j| {
+                let mut row_of_pixels = Vec::new();
+                for i in 0..self.image_width {
+                    row_of_pixels.push(self.render_pixel(world, i, j));
                 }
-
-                write_color(writer, &pixel_color, self.samples_per_pixel)?;
+                row_of_pixels
+            })
+            .collect();
+        for row_of_pixels in rows_of_pixels {
+            for pixel_color in row_of_pixels {
+                write_color(writer, &pixel_color)?;
             }
         }
         Ok(())

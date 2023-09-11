@@ -13,19 +13,14 @@ fn linear_to_gamma(linear_component: f64) -> f64 {
     linear_component.sqrt()
 }
 
-pub fn write_color<W>(writer: &mut W, c: &Color, samples_per_pixel: u32) -> Result<()>
+pub fn write_color<W>(writer: &mut W, c: &Color) -> Result<()>
 where
     W: Write,
 {
-    // Divide the color by number of samples per pixel
-    let r = c.x() / samples_per_pixel as f64;
-    let g = c.y() / samples_per_pixel as f64;
-    let b = c.z() / samples_per_pixel as f64;
-
     // apply linear to gamma transform
-    let r = linear_to_gamma(r);
-    let g = linear_to_gamma(g);
-    let b = linear_to_gamma(b);
+    let r = linear_to_gamma(c.x());
+    let g = linear_to_gamma(c.y());
+    let b = linear_to_gamma(c.z());
 
     write!(
         writer,

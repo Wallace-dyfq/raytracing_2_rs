@@ -5,13 +5,13 @@ use crate::utils::{degrees_to_radians, INFINITY};
 use crate::Point3;
 use crate::Ray;
 use crate::Vec3;
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
-    pub material: Rc<dyn Material>,
+    pub material: Arc<dyn Material>,
     pub t: f64,
     pub u: f64,
     pub v: f64,
@@ -19,7 +19,7 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new(point: Point3, material: Rc<dyn Material>, t: f64, u: f64, v: f64) -> Self {
+    pub fn new(point: Point3, material: Arc<dyn Material>, t: f64, u: f64, v: f64) -> Self {
         Self {
             point,
             normal: Vec3::new(0.0, 0.0, 0.0),
@@ -42,17 +42,17 @@ impl HitRecord {
 }
 #[derive(Default)]
 pub struct Hittables {
-    pub objects: Vec<Rc<dyn Hittable>>,
+    pub objects: Vec<Arc<dyn Hittable>>,
     bbox: AABB,
 }
 
 impl Hittables {
-    pub fn new(hitable: Rc<dyn Hittable>) -> Self {
+    pub fn new(hitable: Arc<dyn Hittable>) -> Self {
         let mut s = Self::default();
         s.add(hitable);
         s
     }
-    pub fn add(&mut self, obj: Rc<dyn Hittable>) {
+    pub fn add(&mut self, obj: Arc<dyn Hittable>) {
         self.bbox = AABB::merge(&self.bbox, &obj.bounding_box());
         self.objects.push(obj);
     }
@@ -75,13 +75,13 @@ impl Hittable for Hittables {
 }
 
 pub struct Translate {
-    object: Rc<dyn Hittable>,
+    object: Arc<dyn Hittable>,
     offset: Vec3,
     bbox: AABB,
 }
 
 impl Translate {
-    pub fn new(p: Rc<dyn Hittable>, displacement: &Vec3) -> Self {
+    pub fn new(p: Arc<dyn Hittable>, displacement: &Vec3) -> Self {
         Self {
             object: p.clone(),
             offset: displacement.clone(),
@@ -109,14 +109,14 @@ impl Hittable for Translate {
 }
 
 pub struct RotateY {
-    object: Rc<dyn Hittable>,
+    object: Arc<dyn Hittable>,
     sin_theta: f64,
     cos_theta: f64,
     bbox: AABB,
 }
 
 impl RotateY {
-    pub fn new(object: Rc<dyn Hittable>, angle: f64) -> Self {
+    pub fn new(object: Arc<dyn Hittable>, angle: f64) -> Self {
         let radians = degrees_to_radians(angle);
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();

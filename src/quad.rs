@@ -1,20 +1,20 @@
 use crate::aabb::AABB;
 use crate::Hittables;
 use crate::{HitRecord, Hittable, Material, Point3, Ray, Vec3};
-use std::rc::Rc;
+use std::sync::Arc;
 
 pub struct Quad {
     q: Point3,
     u: Vec3,
     v: Vec3,
-    material: Rc<dyn Material>,
+    material: Arc<dyn Material>,
     normal: Vec3, //  unit vector
     d: f64,       // distance from origin to the quad along normal
     bbox: AABB,
     w: Vec3,
 }
 // box is a reserved keyword for rust
-pub fn create_box(a: Point3, b: Point3, material: Rc<dyn Material>) -> Rc<Hittables> {
+pub fn create_box(a: Point3, b: Point3, material: Arc<dyn Material>) -> Arc<Hittables> {
     let mut sides = Hittables::default();
     let min = Point3::new(a.x().min(b.x()), a.y().min(b.y()), a.z().min(b.z()));
 
@@ -23,47 +23,47 @@ pub fn create_box(a: Point3, b: Point3, material: Rc<dyn Material>) -> Rc<Hittab
     let dx = Vec3::new(max.x() - min.x(), 0.0, 0.0);
     let dy = Vec3::new(0.0, max.y() - min.y(), 0.0);
     let dz = Vec3::new(0.0, 0.0, max.z() - min.z());
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), max.z()),
         dx.clone(),
         dy.clone(),
         material.clone(),
     ))); // front
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(max.x(), min.y(), max.z()),
         -&dz,
         dy.clone(),
         material.clone(),
     ))); // right
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(max.x(), min.y(), min.z()),
         -&dx,
         dy.clone(),
         material.clone(),
     ))); // back
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dz.clone(),
         dy.clone(),
         material.clone(),
     ))); // left
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), max.y(), max.z()),
         dx.clone(),
         -&dz,
         material.clone(),
     ))); // top
-    sides.add(Rc::new(Quad::new(
+    sides.add(Arc::new(Quad::new(
         Point3::new(min.x(), min.y(), min.z()),
         dx.clone(),
         dz.clone(),
         material.clone(),
     ))); // bottom
 
-    Rc::new(sides)
+    Arc::new(sides)
 }
 impl Quad {
-    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Rc<dyn Material>) -> Self {
+    pub fn new(q: Point3, u: Vec3, v: Vec3, material: Arc<dyn Material>) -> Self {
         let p = &q + (&u + &v);
         let bbox = AABB::new(&q, &p).pad();
         let n = u.cross(&v);

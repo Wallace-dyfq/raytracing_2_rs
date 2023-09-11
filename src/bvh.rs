@@ -3,12 +3,12 @@ use crate::utils::random_range;
 use crate::Hittable;
 use crate::{HitRecord, Hittables, Interval, Ray};
 use std::cmp::Ordering;
-use std::rc::Rc;
+use std::sync::Arc;
 
 // bounding volume hierarchy
 pub struct BvhNode {
-    left: Rc<dyn Hittable>,
-    right: Rc<dyn Hittable>,
+    left: Arc<dyn Hittable>,
+    right: Arc<dyn Hittable>,
     bbox: AABB,
 }
 
@@ -17,12 +17,12 @@ impl BvhNode {
         Self::new(&hittables.objects)
     }
 
-    pub fn new(src_objects: &Vec<Rc<dyn Hittable>>) -> Self {
+    pub fn new(src_objects: &Vec<Arc<dyn Hittable>>) -> Self {
         //println!("creating BvhNode for {} hittables", src_objects.len());
         let mut objects = src_objects
             .iter()
             .map(|x| x.clone())
-            .collect::<Vec<Rc<dyn Hittable>>>();
+            .collect::<Vec<Arc<dyn Hittable>>>();
         match objects.len() {
             1 => Self {
                 left: src_objects[0].clone(),
@@ -47,8 +47,8 @@ impl BvhNode {
                 let right = Self::new(&objects[mid..].to_vec());
                 let bbox = AABB::merge(&left.bounding_box(), &right.bounding_box());
                 Self {
-                    left: Rc::new(left),
-                    right: Rc::new(right),
+                    left: Arc::new(left),
+                    right: Arc::new(right),
                     bbox,
                 }
             }
@@ -56,8 +56,8 @@ impl BvhNode {
     }
 
     pub fn box_compare(
-        box_a: Rc<dyn Hittable>,
-        box_b: Rc<dyn Hittable>,
+        box_a: Arc<dyn Hittable>,
+        box_b: Arc<dyn Hittable>,
         axis_index: u32,
     ) -> Ordering {
         let a = box_a.bounding_box().axis(axis_index).min;

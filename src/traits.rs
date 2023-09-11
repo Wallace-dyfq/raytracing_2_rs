@@ -10,13 +10,13 @@ pub struct ScatterInfo {
     pub attenuation: Color,
     pub ray_scattered: Ray,
 }
-pub trait Hittable {
+pub trait Hittable: Send + Sync {
     fn hit(&self, ray: &Ray, ray_t: &mut Interval) -> Option<HitRecord>;
 
     fn bounding_box(&self) -> AABB; // or ref?
 }
 
-pub trait Material {
+pub trait Material: Send + Sync {
     fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
         Color::new(0.0, 0.0, 0.0)
     }
@@ -24,6 +24,6 @@ pub trait Material {
     fn scatter(&self, ray_in: &Ray, rec: &HitRecord) -> Option<ScatterInfo>;
 }
 
-pub trait Texture {
+pub trait Texture: Send + Sync {
     fn value(&self, u: f64, v: f64, p: &Point3) -> Color;
 }

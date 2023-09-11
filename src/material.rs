@@ -6,18 +6,18 @@ use crate::Material;
 use crate::Point3;
 use crate::Ray;
 use crate::Vec3;
-use std::rc::Rc;
+use std::sync::Arc;
 
 // diffusive
 #[derive(Clone)]
 pub struct Lambertian {
-    albedo: Rc<dyn Texture>,
+    albedo: Arc<dyn Texture>,
 }
 
 // reflective
 #[derive(Clone)]
 pub struct Metal {
-    albedo: Rc<dyn Texture>,
+    albedo: Arc<dyn Texture>,
     fuzz: f64,
 }
 
@@ -28,11 +28,11 @@ pub struct Dielectric {
 impl Lambertian {
     pub fn new_from_color(color: Color) -> Self {
         Self {
-            albedo: Rc::new(SolidColor::new(color)),
+            albedo: Arc::new(SolidColor::new(color)),
         }
     }
 
-    pub fn new(texture: Rc<dyn Texture>) -> Self {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
         Self { albedo: texture }
     }
 }
@@ -62,12 +62,12 @@ impl Material for Lambertian {
 impl Metal {
     pub fn new_from_color(color: Color, fuzz: f64) -> Self {
         Self {
-            albedo: Rc::new(SolidColor::new(color)),
+            albedo: Arc::new(SolidColor::new(color)),
             fuzz,
         }
     }
 
-    pub fn new(texture: Rc<dyn Texture>, fuzz: f64) -> Self {
+    pub fn new(texture: Arc<dyn Texture>, fuzz: f64) -> Self {
         Self {
             albedo: texture,
             fuzz,
@@ -136,17 +136,17 @@ impl Material for Dielectric {
 }
 
 pub struct DiffuseLight {
-    pub emit: Rc<dyn Texture>,
+    pub emit: Arc<dyn Texture>,
 }
 
 impl DiffuseLight {
-    pub fn new(texture: Rc<dyn Texture>) -> Self {
+    pub fn new(texture: Arc<dyn Texture>) -> Self {
         Self { emit: texture }
     }
 
     pub fn new_from_color(color: Color) -> Self {
         Self {
-            emit: Rc::new(SolidColor::new(color)),
+            emit: Arc::new(SolidColor::new(color)),
         }
     }
 }
@@ -161,16 +161,16 @@ impl Material for DiffuseLight {
 }
 
 pub struct Isotropic {
-    albedo: Rc<dyn Texture>,
+    albedo: Arc<dyn Texture>,
 }
 
 impl Isotropic {
-    pub fn new(a: Rc<dyn Texture>) -> Self {
+    pub fn new(a: Arc<dyn Texture>) -> Self {
         Self { albedo: a }
     }
     pub fn new_from_color(c: Color) -> Self {
         Self {
-            albedo: Rc::new(SolidColor::new(c)),
+            albedo: Arc::new(SolidColor::new(c)),
         }
     }
 }

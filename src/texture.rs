@@ -3,9 +3,10 @@ use crate::traits::Texture;
 use crate::Color;
 use crate::{Interval, Point3};
 use image::io::Reader as ImageReader;
+use image::DynamicImage::ImageRgb8;
 use image::ImageFormat;
 use image::{open, GenericImage, GenericImageView, ImageBuffer, Rgba};
-use std::rc::Rc;
+use std::sync::Arc;
 
 #[derive(Debug, Clone)]
 pub struct SolidColor {
@@ -31,12 +32,12 @@ impl Texture for SolidColor {
 
 pub struct CheckerTexture {
     inv_scale: f64,
-    even: Rc<dyn Texture>,
-    odd: Rc<dyn Texture>,
+    even: Arc<dyn Texture>,
+    odd: Arc<dyn Texture>,
 }
 
 impl CheckerTexture {
-    pub fn new(scale: f64, even: Rc<dyn Texture>, odd: Rc<dyn Texture>) -> Self {
+    pub fn new(scale: f64, even: Arc<dyn Texture>, odd: Arc<dyn Texture>) -> Self {
         Self {
             inv_scale: 1.0 / scale,
             even,
@@ -47,8 +48,8 @@ impl CheckerTexture {
     pub fn new_from_colors(scale: f64, c1: Color, c2: Color) -> Self {
         Self {
             inv_scale: 1.0 / scale,
-            even: Rc::new(SolidColor::new(c1)),
-            odd: Rc::new(SolidColor::new(c2)),
+            even: Arc::new(SolidColor::new(c1)),
+            odd: Arc::new(SolidColor::new(c2)),
         }
     }
 }
@@ -66,14 +67,15 @@ impl Texture for CheckerTexture {
 }
 
 pub struct ImageTexture {
-    image: Rc<dyn GenericImageView<Pixel = Rgba<u8>>>,
+    //image: Arc<Vec<Color>>,
+    image: Arc<image::DynamicImage>,
 }
 
 impl ImageTexture {
     pub fn new(file_name: String) -> Self {
         let image = ImageReader::open(file_name).unwrap().decode().unwrap();
         Self {
-            image: Rc::new(image),
+            image: Arc::new(image),
         }
     }
 }
