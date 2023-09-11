@@ -74,11 +74,10 @@ impl Camera {
         let rows_of_pixels: Vec<_> = (0..self.image_height)
             .into_par_iter()
             .map(|j| {
-                let mut row_of_pixels = Vec::new();
-                for i in 0..self.image_width {
-                    row_of_pixels.push(self.render_pixel(world, i, j));
-                }
-                row_of_pixels
+                (0..self.image_width)
+                    .into_iter()
+                    .map(|i| self.render_pixel(world, i, j))
+                    .collect::<Vec<_>>()
             })
             .collect();
         for row_of_pixels in rows_of_pixels {
