@@ -3,9 +3,8 @@ use crate::traits::Texture;
 use crate::Color;
 use crate::{Interval, Point3};
 use image::io::Reader as ImageReader;
-use image::DynamicImage::ImageRgb8;
-use image::ImageFormat;
-use image::{open, GenericImage, GenericImageView, ImageBuffer, Rgba};
+use image::DynamicImage;
+use image::GenericImageView;
 use std::sync::Arc;
 
 #[derive(Debug, Clone)]
@@ -68,7 +67,7 @@ impl Texture for CheckerTexture {
 
 pub struct ImageTexture {
     //image: Arc<Vec<Color>>,
-    image: Arc<image::DynamicImage>,
+    image: Arc<DynamicImage>,
 }
 
 impl ImageTexture {

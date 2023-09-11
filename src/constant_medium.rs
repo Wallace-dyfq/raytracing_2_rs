@@ -4,7 +4,6 @@ use crate::traits::Texture;
 use crate::utils::{random_f64, INFINITY};
 use crate::Color;
 use crate::Interval;
-use crate::Vec3;
 use crate::{HitRecord, Hittable, Material};
 use std::sync::Arc;
 
