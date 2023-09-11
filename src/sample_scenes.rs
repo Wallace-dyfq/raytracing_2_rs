@@ -382,7 +382,7 @@ pub fn simple_light(fname: Option<String>) -> Result<()> {
     world.add(lightsource);
     world.add(ball_light);
 
-    let mut camera = get_default_camera(400);
+    let mut camera = get_default_camera(1200);
 
     camera.look_from = Point3::new(26.0, 3.0, 6.0);
     camera.look_at = Point3::new(0.0, 2.0, 0.0);
@@ -595,7 +595,7 @@ fn get_default_camera(image_width: u32) -> Camera {
     let mut camera = Camera::new(
         16.0 / 9.0,
         image_width, /* image width*/
-        100,         /* sample per pixel */
+        500,         /* sample per pixel */
         50,          /* max depth */
         20.0,        /* vfov */
     );
