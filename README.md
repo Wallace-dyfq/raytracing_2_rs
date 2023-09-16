@@ -3,11 +3,13 @@
 Rust implementation for the [RayTracingTheNextWeek](https://raytracing.github.io/books/RayTracingTheNextWeek.html) with additional multithreading to speed up the program.
 
 # final scene
+
  ![final_scene](./images/final_scene.png)
 
 # Some other sample scenes
 
 - random_balls
+
  ![random_balls](./images/random_balls.png)
 
 - two spheres
